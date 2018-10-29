@@ -106,10 +106,11 @@ export class DirectoryApp extends React.PureComponent<DirectoryProps, null> {
         </div>
         <style jsx>{`
           .menu-header-root {
-            position: "fixed",
+            position: fixed,
             top: 0,
             left: 0,
-            width: "100%"
+            width: 100%,
+            margin-bottom: 80px
           }
           .jext-listing-root {
             margin-top: 2rem;

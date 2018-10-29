@@ -60,18 +60,20 @@ export class DirectoryApp extends React.PureComponent<DirectoryProps, null> {
     const dotdotlink = <a href={dotdothref}>{".."}</a>;
     return (
       <React.Fragment>
-        <Nav>
-          <NavSection>
-            <a
-              href={urljoin(this.props.host.basePath, "/nteract/edit")}
-              title="Home"
-            >
-              <ThemedLogo />
-            </a>
-            <span>{this.props.content.filepath.split("/").pop()}</span>
-          </NavSection>
-        </Nav>
-        <NewNotebookNavigation onClick={this.openNotebook} />
+        <div className="menu-header-root">
+          <Nav>
+            <NavSection>
+              <a
+                href={urljoin(this.props.host.basePath, "/nteract/edit")}
+                title="Home"
+              >
+                <ThemedLogo />
+              </a>
+              <span>{this.props.content.filepath.split("/").pop()}</span>
+            </NavSection>
+          </Nav>
+          <NewNotebookNavigation onClick={this.openNotebook} />
+        </div>
         <div className="jext-listing-root">
           <Listing>
             {atRoot ? null : (
@@ -103,6 +105,12 @@ export class DirectoryApp extends React.PureComponent<DirectoryProps, null> {
           </Listing>
         </div>
         <style jsx>{`
+          .menu-header-root {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%"
+          }
           .jext-listing-root {
             margin-top: 2rem;
             padding-left: 2rem;

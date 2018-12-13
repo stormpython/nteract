@@ -42,7 +42,7 @@ type StickyHeaderProps = {
 export class StickyHeader extends React.Component<StickyHeaderProps, {}> {
   render() {
     return (
-      <header>
+      <div>
         {this.props.children}
         <style jsx>{`
           header {
@@ -60,7 +60,7 @@ export class StickyHeader extends React.Component<StickyHeaderProps, {}> {
             box-sizing: border-box;
           }
         `}</style>
-      </header>
+      </div>
     );
   }
 }

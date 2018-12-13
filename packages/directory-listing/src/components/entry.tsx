@@ -41,6 +41,7 @@ export class Entry extends React.Component<EntryProps> {
                   : "directory-entry-field"
             });
           } else {
+            debugger;
             return <td className="directory-entry-field">{child}</td>;
           }
         })}

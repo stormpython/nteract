@@ -108,15 +108,15 @@ export const Entry = (props: EntryProps) => {
   switch (props.entry.type) {
     case "directory":
       // Dynamic type check on content being an Array
-      if (Array.isArray(props.entry.content)) {
-        return (
-          <DirectoryListing contents={props.entry.content} basepath={"/view"} />
-        );
-      }
-      return null;
-    case "file":
-      // TODO: Case off various file types (by extension, mimetype)
-      return <File entry={props.entry} pathname={props.pathname} />;
+      // if (Array.isArray(props.entry.content)) {
+      //   return (
+      //     <DirectoryListing contents={props.entry.content} basepath={"/view"} />
+      //   );
+      // }
+      // return null;
+    // case "file":
+    //   // TODO: Case off various file types (by extension, mimetype)
+    //   return <File entry={props.entry} pathname={props.pathname} />;
     case "notebook":
       return (
         <Styles>

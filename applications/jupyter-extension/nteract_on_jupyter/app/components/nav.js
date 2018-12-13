@@ -35,16 +35,6 @@ export class NavSection extends React.Component<NavSectionProps, null> {
   }
 }
 
-type StickyHeaderProps = {
-  children: React.ChildrenArray<React.Element<*>>
-}
-
-export class StickyHeader extends React.Component<StickyHeaderProps, {}> {
-  render() {
-    return (<div>{this.props.children}</div>);
-  }
-}
-
 type NavProps = {
   children: React.ChildrenArray<React.Element<*>>,
   contentRef: ContentRef
@@ -53,7 +43,7 @@ type NavProps = {
 export class Nav extends React.Component<NavProps, null> {
   render() {
     return (
-      <StickyHeader>
+      <div>
         <div className="nteract-nav">
           <ul>
             {React.Children.map(this.props.children, child => {
@@ -86,7 +76,7 @@ export class Nav extends React.Component<NavProps, null> {
             padding: 0px 0px;
           }
         `}</style>
-      </StickyHeader>
+      </div>
     );
   }
 }

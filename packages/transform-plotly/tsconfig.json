@@ -4,8 +4,5 @@
     "outDir": "lib",
     "rootDir": "src"
   },
-  "include": ["src/*"],
-  "references": [
-    { "path": "../plotly" }
-  ]
+  "include": ["src/*"]
 }

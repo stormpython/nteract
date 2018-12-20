@@ -4,10 +4,9 @@
     "outDir": "lib",
     "rootDir": "src"
   },
-  "include": ["src/*"],
+  "include": ["src/**/*.ts"],
   "references": [
-    { "path": "../markdown" },
-    { "path": "../mathjax" },
-    { "path": "../transform-vdom" }
+      { "path": "../octicons" },
+      { "path": "../styled-blueprintjsx" }
   ]
 }

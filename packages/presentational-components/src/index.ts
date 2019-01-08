@@ -6,6 +6,7 @@ import { Source } from "./components/source";
 import { Cell } from "./components/cell";
 import { Cells } from "./components/cells";
 import { HeaderEditor } from "./components/header-editor";
+import { Keybindings } from "./components/keybindings";
 import * as themes from "./themes";
 
 export * from "./styles";
@@ -21,4 +22,5 @@ export {
   Cell,
   Cells,
   HeaderEditor,
+  Keybindings
 };

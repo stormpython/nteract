@@ -59,6 +59,18 @@ const GlobalAppStyle = createGlobalStyle`
 class App extends React.Component<{ contentRef: ContentRef }> {
   notificationSystem!: ReactNotificationSystem;
 
+  // Implements blueprintjs Hotkeys. For more info, see:
+  // https://blueprintjs.com/docs/#core/components/hotkeys
+  renderHotkeys() {
+    return (
+      <Hotkeys>
+        {keybindings.map(kb => (
+          <Hotkey global={true} combo={kb.combo} onKeyDown={kb.action} />
+        ))}
+      </Hotkeys>
+    );
+  }
+
   shouldComponentUpdate(nextProps: { contentRef: ContentRef }) {
     return nextProps.contentRef !== this.props.contentRef;
   }

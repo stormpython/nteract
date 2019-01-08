@@ -2,6 +2,7 @@ import * as React from "react";
 import NotificationSystem, {
   System as ReactNotificationSystem
 } from "react-notification-system";
+import { Hotkey, Hotkeys, HotkeysTarget } from "@blueprintjs/core";
 import { themes, GlobalCSSVariables } from "@nteract/presentational-components";
 import { ContentRef } from "@nteract/core";
 import { BlueprintCSS } from "@nteract/styled-blueprintjsx";
@@ -54,6 +55,7 @@ const GlobalAppStyle = createGlobalStyle`
   }
 `;
 
+@HotkeysTarget
 class App extends React.Component<{ contentRef: ContentRef }> {
   notificationSystem!: ReactNotificationSystem;
 

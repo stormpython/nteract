@@ -1,17 +1,19 @@
 import * as React from "react";
 import { hot } from "react-hot-loader";
 import { connect } from "react-redux";
+import { Dispatch } from "redux";
 import NotificationSystem, {
   System as ReactNotificationSystem
 } from "react-notification-system";
 import { createGlobalStyle } from "styled-components";
 import * as actions from "@nteract/actions";
-import { ContentRef } from "@nteract/core";
+import { AppState, ContentRef } from "@nteract/core";
 import { themes, GlobalCSSVariables } from "@nteract/presentational-components";
 import { BlueprintCSS } from "@nteract/styled-blueprintjsx";
 import { Hotkey, Hotkeys, HotkeysTarget } from "@blueprintjs/core";
 
 import { default as Contents } from "./contents";
+import { KEY_BACKSPACE } from "@blueprintjs/icons/lib/esm/generated/iconNames";
 
 const GlobalAppStyle = createGlobalStyle`
   :root {
@@ -65,14 +67,14 @@ interface Keybindings {
 
 interface AppProps {
   contentRef: ContentRef;
-  keybindings: Keybindings;
+  keybindings: Keybindings[];
 }
 
 const mapStateToProps = (
   state: AppState,
   ownProps: { contentRef: ContentRef }
 ): AppProps => {
-  const { keybindings } = state.config.toJS();
+  const keybindings = state.config.get("keybindings");
 
   return {
     contentRef: ownProps.contentRef,
@@ -86,19 +88,27 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   // saveas: (payload: actions.saveAs["payload"]) => dispatch(actions.saveAs(payload)))
 });
 
-class App extends React.Component<AppProps> implements HotkeysTarget {
+class App extends React.Component<AppProps> {
   notificationSystem!: ReactNotificationSystem;
 
   // Implements blueprintjs `Hotkeys` components. For more info, see:
   // https://blueprintjs.com/docs/#core/components/hotkeys
   renderHotkeys() {
+    const onKeyDown = (kb: Keybindings) => {
+      return (e: KeyboardEvent): void => {
+        const action = kb.action.toLowerCase();
+        return this.props[action]();
+      };
+    };
+
     return (
       <Hotkeys>
-        {this.props.keybindings.map(kb => (
+        {this.props.keybindings.map((kb: Keybindings) => (
           <Hotkey
-            global={true}
             combo={kb.combo}
-            onKeyDown={this.props[kb.action.toLowerCase()]}
+            global={true}
+            label={kb.action.toLowerCase()}
+            onKeyDown={onKeyDown(kb)}
           />
         ))}
       </Hotkeys>

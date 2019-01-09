@@ -13,7 +13,6 @@ import { default as File } from "./file";
 interface IContentsProps {
   appBase: string;
   baseDir: string;
-  changeContentName: (value: actions.ChangeContentName) => {};
   contentType: "dummy" | "notebook" | "directory" | "file";
   contentRef: ContentRef;
   displayName?: string;

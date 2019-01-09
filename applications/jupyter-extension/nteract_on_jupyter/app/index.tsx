@@ -2,8 +2,10 @@ import * as React from "react";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import * as Immutable from "immutable";
+import urljoin from "url-join";
 import {
   actions,
+  AppState,
   createKernelspecsRef,
   createKernelRef,
   makeDummyContentRecord,
@@ -17,24 +19,21 @@ import {
   createHostRef,
   makeJupyterHostRecord
 } from "@nteract/core";
-import { AppState } from "@nteract/core";
 import { HostRecord, ContentRecord } from "@nteract/types";
 
 import configureStore from "./store";
 import App from "./app";
 
-const urljoin = require("url-join");
-
 require("./fonts");
 
-export type JupyterConfigData = {
+export interface JupyterConfigData {
   token: string;
   page: "tree" | "view" | "edit";
   contentsPath: string;
   baseUrl: string;
   appVersion: string;
   assetUrl: string;
-};
+}
 
 function main(rootEl: Element, dataEl: Node | null) {
   // When the data element isn't there, provide an error message
@@ -68,12 +67,12 @@ function main(rootEl: Element, dataEl: Node | null) {
   __webpack_public_path__ = urljoin(config.assetUrl, "nteract/static/dist/");
 
   const jupyterHostRecord = makeJupyterHostRecord({
-    id: null,
-    type: "jupyter",
+    basePath: config.baseUrl,
     defaultKernelName: "python",
-    token: config.token,
+    id: null,
     origin: location.origin,
-    basePath: config.baseUrl
+    token: config.token,
+    type: "jupyter"
   });
 
   const hostRef = createHostRef();
@@ -81,28 +80,29 @@ function main(rootEl: Element, dataEl: Node | null) {
 
   const initialState: AppState = {
     app: makeAppRecord({
-      version: `nteract-on-jupyter@${config.appVersion}`,
       // TODO: Move into core as a "current" host
-      host: jupyterHostRecord
+      host: jupyterHostRecord,
+      version: `nteract-on-jupyter@${config.appVersion}`
     }),
     comms: makeCommsRecord(),
     config: Immutable.Map({
+      keybindings: [{ combo: "ctrl + s", action: "save" }],
       theme: "light"
     }),
     core: makeStateRecord({
       entities: makeEntitiesRecord({
-        hosts: makeHostsRecord({
-          byRef: Immutable.Map<string, HostRecord>().set(
-            hostRef,
-            jupyterHostRecord
-          )
-        }),
         contents: makeContentsRecord({
           byRef: Immutable.Map<string, ContentRecord>().set(
             contentRef,
             makeDummyContentRecord({
               filepath: config.contentsPath
             })
+          )
+        }),
+        hosts: makeHostsRecord({
+          byRef: Immutable.Map<string, HostRecord>().set(
+            hostRef,
+            jupyterHostRecord
           )
         })
       })
@@ -117,10 +117,10 @@ function main(rootEl: Element, dataEl: Node | null) {
 
   store.dispatch(
     actions.fetchContent({
+      contentRef,
       filepath: config.contentsPath,
-      params: {},
       kernelRef,
-      contentRef
+      params: {}
     })
   );
   store.dispatch(actions.fetchKernelspecs({ hostRef, kernelspecsRef }));

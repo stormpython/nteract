@@ -95,9 +95,10 @@ class App extends React.Component<AppProps> {
   // https://blueprintjs.com/docs/#core/components/hotkeys
   renderHotkeys() {
     const onKeyDown = (kb: Keybindings) => {
+      const { contentRef } = this.props;
       return (e: KeyboardEvent): void => {
         const action = kb.action.toLowerCase();
-        return this.props[action]();
+        return this.props[action]({ contentRef: contentRef });
       };
     };
 
@@ -135,5 +136,8 @@ class App extends React.Component<AppProps> {
     );
   }
 }
+
+// Mutates component
+HotkeysTarget(App);
 
 export default App;

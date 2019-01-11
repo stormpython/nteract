@@ -13,7 +13,6 @@ import { BlueprintCSS } from "@nteract/styled-blueprintjsx";
 import { Hotkey, Hotkeys, HotkeysTarget } from "@blueprintjs/core";
 
 import { default as Contents } from "./contents";
-import { KEY_BACKSPACE } from "@blueprintjs/icons/lib/esm/generated/iconNames";
 
 const GlobalAppStyle = createGlobalStyle`
   :root {
@@ -84,8 +83,9 @@ const mapStateToProps = (
 
 // Keyboard shortcut actions available
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  save: (payload: actions.save["payload"]) => dispatch(actions.save(payload))
-  // saveas: (payload: actions.saveAs["payload"]) => dispatch(actions.saveAs(payload)))
+  save: (payload: actions.save["payload"]) => dispatch(actions.save(payload)),
+  saveas: (payload: actions.saveAs["payload"]) =>
+    dispatch(actions.saveAs(payload))
 });
 
 class App extends React.Component<AppProps> {
@@ -93,28 +93,29 @@ class App extends React.Component<AppProps> {
 
   // Implements blueprintjs `Hotkeys` components. For more info, see:
   // https://blueprintjs.com/docs/#core/components/hotkeys
-  renderHotkeys() {
-    const onKeyDown = (kb: Keybindings) => {
-      const { contentRef } = this.props;
-      return (e: KeyboardEvent): void => {
-        const action = kb.action.toLowerCase();
-        return this.props[action]({ contentRef: contentRef });
-      };
-    };
+  // renderHotkeys() {
+  //   const onKeyDown = (kb: Keybindings) => {
+  //     const { contentRef } = this.props;
+  //     return (e: KeyboardEvent): void => {
+  //       console.log(e);
+  //       const action = kb.action.toLowerCase();
+  //       return this.props[action]({ contentRef });
+  //     };
+  //   };
 
-    return (
-      <Hotkeys>
-        {this.props.keybindings.map((kb: Keybindings) => (
-          <Hotkey
-            combo={kb.combo}
-            global={true}
-            label={kb.action.toLowerCase()}
-            onKeyDown={onKeyDown(kb)}
-          />
-        ))}
-      </Hotkeys>
-    );
-  }
+  //   return (
+  //     <Hotkeys>
+  //       {this.props.keybindings.map((kb: Keybindings) => (
+  //         <Hotkey
+  //           combo={kb.combo}
+  //           global={true}
+  //           label={kb.action.toLowerCase()}
+  //           onKeyDown={onKeyDown(kb)}
+  //         />
+  //       ))}
+  //     </Hotkeys>
+  //   );
+  // }
 
   shouldComponentUpdate(nextProps: { contentRef: ContentRef }) {
     return nextProps.contentRef !== this.props.contentRef;
@@ -122,7 +123,8 @@ class App extends React.Component<AppProps> {
 
   render() {
     return (
-      <React.Fragment>
+      // <React.Fragment>
+      <div>
         <GlobalCSSVariables />
         <Contents contentRef={this.props.contentRef} />
         <NotificationSystem
@@ -132,12 +134,55 @@ class App extends React.Component<AppProps> {
         />
         <GlobalAppStyle />
         <BlueprintCSS />
-      </React.Fragment>
+      </div>
+      // </React.Fragment>
     );
   }
 }
 
-// Mutates component
-HotkeysTarget(App);
+const MyApp = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App);
 
-export default App;
+const keybindings = [{ combo: "shift + s", action: "save" }];
+
+class StatelessApp extends React.PureComponent {
+  // tslint:disable-line max-classes-per-file
+  public render() {
+    return <MyApp contentRef={""} keybindings={[]} />;
+  }
+}
+
+function AppWrapper() {} // tslint:disable-line no-empty
+AppWrapper.prototype = Object.create(StatelessApp.prototype);
+AppWrapper.prototype.renderHotkeys = function() {
+  const onKeyDown = (kb: Keybindings) => {
+    const { contentRef } = this.props;
+    return (e: KeyboardEvent): void => {
+      console.log(e);
+      const action = kb.action.toLowerCase();
+      return this.props[action]({ contentRef });
+    };
+  };
+
+  return (
+    <Hotkeys>
+      {this.props.keybindings.map((kb: Keybindings) => (
+        <Hotkey
+          combo={kb.combo}
+          global={true}
+          label={kb.action.toLowerCase()}
+          onKeyDown={onKeyDown(kb)}
+        />
+      ))}
+    </Hotkeys>
+  );
+};
+
+export default HotkeysTarget(AppWrapper as any);
+
+// export default connect(
+//   mapStateToProps,
+//   mapDispatchToProps
+// )(App);

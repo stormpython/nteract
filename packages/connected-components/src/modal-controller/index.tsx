@@ -4,27 +4,36 @@ import { connect } from "react-redux";
 
 import AboutModal from "./about-modal";
 import { MODAL_TYPES } from "./constants";
+import KeybindingsModal from "./keybindings-modal";
 
 interface Props {
   modalType: string;
 }
 
-class ModalController extends React.Component<Props> {
-  getModal = () => {
+class ModalController extends React.PureComponent<Props> {
+  getModal: () => ConnectedComponentClass<
+    typeof PureAboutModal | KeybindingsModal,
+    Pick<Props, never>
+  > | null = () => {
     const { modalType } = this.props;
     switch (modalType) {
       case MODAL_TYPES.ABOUT:
         return AboutModal;
+      case MODAL_TYPES.KEYBINDING:
+        return KeybindingsModal;
       default:
         return null;
     }
   };
+
+  // tslint:disable-next-line typedef
   render() {
-    const Modal = this.getModal();
+    const Modal: JSX.Element | null = this.getModal();
     return Modal ? <Modal /> : null;
   }
 }
 
+// tslint:disable-next-line typedef
 const mapStateToProps = (state: AppState) => ({
   modalType: selectors.modalType(state)
 });

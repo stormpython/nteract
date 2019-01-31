@@ -95,7 +95,7 @@ interface State {
   openKeys?: string[];
 }
 
-class PureNotebookMenu extends React.Component<Props, State> {
+class PureNotebookMenu extends React.PureComponent<Props, State> {
   state: State = {};
   handleClick = ({ key }: { key: string }) => {
     const {

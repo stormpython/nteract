@@ -12,7 +12,7 @@ interface Props {
 
 class ModalController extends React.PureComponent<Props> {
   getModal: () => ConnectedComponentClass<
-    typeof PureAboutModal | KeybindingsModal,
+    typeof AboutModal | KeybindingsModal,
     Pick<Props, never>
   > | null = () => {
     const { modalType } = this.props;
@@ -29,7 +29,7 @@ class ModalController extends React.PureComponent<Props> {
   // tslint:disable-next-line typedef
   render() {
     const Modal: JSX.Element | null = this.getModal();
-    return Modal ? <Modal /> : null;
+    return Modal;
   }
 }
 

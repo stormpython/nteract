@@ -62,9 +62,9 @@ export const Cell = styled.div.attrs<CellProps>(props => ({
   }
 
   /*
-  Our cells conditionally style the prompt contained within based on if the cell is
-  selected or hovered. To do this with styled-components we use their method of
-  referring to other components:
+  Our cells conditionally style the prompt contained within based on if the 
+  cell is selected or hovered. To do this with styled-components we use their 
+  method of referring to other components:
 
   https://www.styled-components.com/docs/advanced#referring-to-other-components
 

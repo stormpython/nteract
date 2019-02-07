@@ -89,7 +89,7 @@ export const CellToolbar = styled.div`
 export const CellToolbarMask = styled.div.attrs(
   (props: { sourceHidden?: boolean }) => ({
     style: {
-      display: props.sourceHidden ? "block" : "none"
+      display: !props.sourceHidden ? "block" : "none"
     }
   })
 )`

@@ -5,6 +5,7 @@ import {
   DirectoryContentRecordProps,
   DummyContentRecordProps,
   FileContentRecordProps,
+  KernelRef,
   NotebookContentRecordProps
 } from "@nteract/types";
 import { RecordOf } from "immutable";
@@ -122,7 +123,7 @@ class Contents extends React.PureComponent<
   }
 }
 
-const makeMapStateToProps: any = (
+const makeMapStateToProps = (
   initialState: AppState,
   initialProps: { appBase: string; contentRef: ContentRef }
 ) => {
@@ -172,9 +173,10 @@ const makeMapStateToProps: any = (
 
 const mapDispatchToProps = (
   dispatch: Dispatch,
-  ownProps: IContentsProps
-): object => {
-  const { appBase, contentRef } = ownProps;
+  initialProps: { contentRef: ContentRef }
+) => {
+  const store = window.store;
+  const kernelRef = store.getState().core.kernelRef;
 
   return {
     // `HotKeys` handlers object
@@ -182,43 +184,80 @@ const mapDispatchToProps = (
     handlers: {
       CHANGE_CELL_TYPE: (event: KeyboardEvent) => {
         const type: CellType = event.key === "Y" ? "code" : "markdown";
-        return dispatch(actions.changeCellType({ to: type, contentRef }));
+
+        return dispatch(
+          actions.changeCellType({
+            to: type,
+            contentRef: initialProps.contentRef
+          })
+        );
       },
-      COPY_CELL: () => dispatch(actions.copyCell({ contentRef })),
+      COPY_CELL: () =>
+        dispatch(actions.copyCell({ contentRef: initialProps.contentRef })),
       CREATE_CELL_ABOVE: () =>
-        dispatch(actions.createCellAbove({ cellType: "code", contentRef })),
+        dispatch(
+          actions.createCellAbove({
+            cellType: "code",
+            contentRef: initialProps.contentRef
+          })
+        ),
       CREATE_CELL_BELOW: () =>
         dispatch(
-          actions.createCellBelow({ cellType: "code", source: "", contentRef })
+          actions.createCellBelow({
+            cellType: "code",
+            source: "",
+            contentRef: initialProps.contentRef
+          })
         ),
-      CUT_CELL: () => dispatch(actions.cutCell({ contentRef })),
-      DELETE_CELL: () => dispatch(actions.deleteCell({ contentRef })),
+      CUT_CELL: () =>
+        dispatch(actions.cutCell({ contentRef: initialProps.contentRef })),
+      DELETE_CELL: () =>
+        dispatch(actions.deleteCell({ contentRef: initialProps.contentRef })),
       EXECUTE_ALL_CELLS: () =>
-        dispatch(actions.executeAllCells({ contentRef })),
-      INTERRUPT_KERNEL: () => dispatch(actions.interruptKernel({})),
-      KILL_KERNEL: () => dispatch(actions.killKernel({ restarting: false })),
-      OPEN: () => {
-        // On initialization, the appBase prop is not available.
-        const nteractEditUri = "/nteract/edit";
-        const url = appBase ? urljoin(appBase, nteractEditUri) : nteractEditUri;
-        window.open(url, "_blank");
+        dispatch(
+          actions.executeAllCells({ contentRef: initialProps.contentRef })
+        ),
+      INTERRUPT_KERNEL: () => {
+        dispatch(actions.interruptKernel({ kernelRef }));
       },
-      PASTE_CELL: () => dispatch(actions.pasteCell({ contentRef })),
+      KILL_KERNEL: () => {
+        const store: any = window.store;
+        const kernelRef: KernelRef = store.getState().core.kernelRef;
+
+        dispatch(
+          actions.killKernel({
+            kernelRef,
+            restarting: false
+          })
+        );
+      },
+      PASTE_CELL: () =>
+        dispatch(actions.pasteCell({ contentRef: initialProps.contentRef })),
       RESTART_KERNEL: (event: KeyboardEvent) => {
+        const store = window.store;
+        const kernelRef: KernelRef | null = store.getState().core.kernelRef;
         const outputHandling: "None" | "Clear All" | "Run All" =
           event.key === "r"
             ? "None"
             : event.key === "a"
             ? "Run All"
             : "Clear All";
-        return dispatch(actions.restartKernel({ outputHandling, contentRef }));
+
+        return dispatch(
+          actions.restartKernel({
+            outputHandling,
+            contentRef: initialProps.contentRef,
+            kernelRef
+          })
+        );
       },
-      SAVE: () => dispatch(actions.save({ contentRef }))
+      SAVE: () =>
+        dispatch(actions.save({ contentRef: initialProps.contentRef }))
     }
   };
 };
 
-export default connect(
+export default connect<IContentsProps, any, any>(
   makeMapStateToProps,
   mapDispatchToProps
 )(Contents);

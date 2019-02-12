@@ -130,8 +130,6 @@ const makeMapStateToProps = (
   initialProps: { appBase: string; contentRef: ContentRef }
 ) => {
   const host: HostRecord = initialState.app.host;
-  const kernelRef: KernelRef = initialState.core.currentKernelspecsRef;
-  console.log("kernelRef... ", kernelRef);
 
   if (host.type !== "jupyter") {
     throw new Error("this component only works with jupyter apps");
@@ -157,6 +155,8 @@ const makeMapStateToProps = (
       throw new Error("need content to view content, check your contentRefs");
     }
 
+    const kernelRef = content.model.kernelRef;
+
     return {
       appBase,
       baseDir: dirname(content.filepath),
@@ -177,7 +177,6 @@ const makeMapStateToProps = (
 };
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: IContentsProps) => {
-  console.log("ownProps... ", ownProps);
   const { contentRef, kernelRef } = ownProps;
 
   return {

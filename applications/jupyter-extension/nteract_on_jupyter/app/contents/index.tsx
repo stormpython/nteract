@@ -1,19 +1,14 @@
-import * as actions from "@nteract/actions";
-import { CellType } from "@nteract/commutable";
 import { AppState, ContentRef, HostRecord, selectors } from "@nteract/core";
 import {
   DirectoryContentRecordProps,
   DummyContentRecordProps,
   FileContentRecordProps,
-  KernelRef,
   NotebookContentRecordProps
 } from "@nteract/types";
 import { RecordOf } from "immutable";
 import { dirname } from "path";
 import * as React from "react";
-import { HotKeys, KeyMap } from "react-hotkeys";
 import { connect } from "react-redux";
-import { Dispatch } from "redux";
 import urljoin from "url-join";
 
 import { ConnectedDirectory } from "./directory";
@@ -21,7 +16,6 @@ import { default as File } from "./file";
 import { ConnectedFileHeader as FileHeader, DirectoryHeader } from "./headers";
 
 import { NotebookMenu } from "@nteract/connected-components";
-import { kernel } from "../../../../../packages/selectors/lib";
 
 interface IContentsProps {
   appBase: string;
@@ -31,7 +25,6 @@ interface IContentsProps {
   displayName: string;
   error?: object | null;
   filepath: string | undefined;
-  kernelRef: KernelRef;
   lastSavedStatement: string;
   loading: boolean;
   mimetype?: string | null;
@@ -49,27 +42,6 @@ class Contents extends React.PureComponent<
   IContentsProps & IDispatchFromProps,
   IContentsState
 > {
-  private keyMap: KeyMap = {
-    CHANGE_CELL_TYPE: [
-      "ctrl+shift+y",
-      "ctrl+shift+m",
-      "meta+shift+y",
-      "meta+shift+m"
-    ],
-    COPY_CELL: ["ctrl+shift+c", "meta+shift+c"],
-    CREATE_CELL_ABOVE: ["ctrl+shift+a", "meta+shift+a"],
-    CREATE_CELL_BELOW: ["ctrl+shift+b", "meta+shift+b"],
-    CUT_CELL: ["ctrl+shift+x", "meta+shift+x"],
-    DELETE_CELL: ["ctrl+shift+d", "meta+shift+d"],
-    EXECUTE_ALL_CELLS: ["alt+r a"],
-    INTERRUPT_KERNEL: ["alt+r i"],
-    KILL_KERNEL: ["alt+r k"],
-    OPEN: ["ctrl+o", "meta+o"],
-    PASTE_CELL: ["ctrl+shift+v", "meta+shift+v"],
-    RESTART_KERNEL: ["alt+r r", "alt+r c", "alt+r a"],
-    SAVE: ["ctrl+s", "ctrl+shift+s", "meta+s", "meta+shift+s"]
-  };
-
   render(): JSX.Element {
     const {
       appBase,
@@ -89,22 +61,20 @@ class Contents extends React.PureComponent<
       case "dummy":
         return (
           <React.Fragment>
-            <HotKeys keyMap={this.keyMap} handlers={handlers}>
-              <FileHeader
-                appBase={appBase}
-                baseDir={baseDir}
-                contentRef={contentRef}
-                displayName={displayName}
-                error={error}
-                loading={loading}
-                saving={saving}
-              >
-                {contentType === "notebook" ? (
-                  <NotebookMenu contentRef={this.props.contentRef} />
-                ) : null}
-              </FileHeader>
-              <File contentRef={contentRef} appBase={appBase} />
-            </HotKeys>
+            <FileHeader
+              appBase={appBase}
+              baseDir={baseDir}
+              contentRef={contentRef}
+              displayName={displayName}
+              error={error}
+              loading={loading}
+              saving={saving}
+            >
+              {contentType === "notebook" ? (
+                <NotebookMenu contentRef={this.props.contentRef} />
+              ) : null}
+            </FileHeader>
+            <File contentRef={contentRef} appBase={appBase} />
           </React.Fragment>
         );
       case "directory":
@@ -155,8 +125,6 @@ const makeMapStateToProps = (
       throw new Error("need content to view content, check your contentRefs");
     }
 
-    const kernelRef = content.model.kernelRef;
-
     return {
       appBase,
       baseDir: dirname(content.filepath),
@@ -165,7 +133,6 @@ const makeMapStateToProps = (
       displayName: content.filepath.split("/").pop() || "",
       error: content.error,
       filepath: content.filepath,
-      kernelRef,
       lastSavedStatement: "recently",
       loading: content.loading,
       mimetype: content.mimetype,
@@ -176,64 +143,7 @@ const makeMapStateToProps = (
   return mapStateToProps;
 };
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: IContentsProps) => {
-  const { contentRef, kernelRef } = ownProps;
-
-  return {
-    // `HotKeys` handlers object
-    // see: https://github.com/greena13/react-hotkeys#defining-handlers
-    handlers: {
-      CHANGE_CELL_TYPE: (event: KeyboardEvent) => {
-        const type: CellType = event.key === "Y" ? "code" : "markdown";
-        return dispatch(actions.changeCellType({ to: type, contentRef }));
-      },
-      COPY_CELL: () => dispatch(actions.copyCell({ contentRef })),
-      CREATE_CELL_ABOVE: () =>
-        dispatch(actions.createCellAbove({ cellType: "code", contentRef })),
-      CREATE_CELL_BELOW: () =>
-        dispatch(
-          actions.createCellBelow({ cellType: "code", source: "", contentRef })
-        ),
-      CUT_CELL: () => dispatch(actions.cutCell({ contentRef })),
-      DELETE_CELL: () => dispatch(actions.deleteCell({ contentRef })),
-      EXECUTE_ALL_CELLS: () =>
-        dispatch(actions.executeAllCells({ contentRef })),
-      INTERRUPT_KERNEL: () => {
-        if (kernelRef) {
-          dispatch(actions.interruptKernel({ kernelRef }));
-        }
-      },
-      KILL_KERNEL: () => {
-        if (kernelRef) {
-          dispatch(
-            actions.killKernel({
-              kernelRef,
-              restarting: false
-            })
-          );
-        }
-      },
-      PASTE_CELL: () => dispatch(actions.pasteCell({ contentRef })),
-      RESTART_KERNEL: (event: KeyboardEvent) => {
-        const outputHandling: "None" | "Clear All" | "Run All" =
-          event.key === "r"
-            ? "None"
-            : event.key === "a"
-            ? "Run All"
-            : "Clear All";
-
-        if (kernelRef) {
-          return dispatch(
-            actions.restartKernel({ outputHandling, contentRef, kernelRef })
-          );
-        }
-      },
-      SAVE: () => dispatch(actions.save({ contentRef }))
-    }
-  };
-};
-
 export default connect<IContentsProps, any, any>(
   makeMapStateToProps,
-  mapDispatchToProps
+  null
 )(Contents);

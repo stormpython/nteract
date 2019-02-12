@@ -21,6 +21,7 @@ import { default as File } from "./file";
 import { ConnectedFileHeader as FileHeader, DirectoryHeader } from "./headers";
 
 import { NotebookMenu } from "@nteract/connected-components";
+import { kernel } from "../../../../../packages/selectors/lib";
 
 interface IContentsProps {
   appBase: string;
@@ -30,6 +31,7 @@ interface IContentsProps {
   displayName: string;
   error?: object | null;
   filepath: string | undefined;
+  kernelRef: KernelRef;
   lastSavedStatement: string;
   loading: boolean;
   mimetype?: string | null;
@@ -63,7 +65,7 @@ class Contents extends React.PureComponent<
     INTERRUPT_KERNEL: ["alt+r i"],
     KILL_KERNEL: ["alt+r k"],
     OPEN: ["ctrl+o", "meta+o"],
-    PASTE_CELL: ["ctrl+shift+v"],
+    PASTE_CELL: ["ctrl+shift+v", "meta+shift+v"],
     RESTART_KERNEL: ["alt+r r", "alt+r c", "alt+r a"],
     SAVE: ["ctrl+s", "ctrl+shift+s", "meta+s", "meta+shift+s"]
   };
@@ -128,6 +130,8 @@ const makeMapStateToProps = (
   initialProps: { appBase: string; contentRef: ContentRef }
 ) => {
   const host: HostRecord = initialState.app.host;
+  const kernelRef: KernelRef = initialState.core.currentKernelspecsRef;
+  console.log("kernelRef... ", kernelRef);
 
   if (host.type !== "jupyter") {
     throw new Error("this component only works with jupyter apps");
@@ -161,6 +165,7 @@ const makeMapStateToProps = (
       displayName: content.filepath.split("/").pop() || "",
       error: content.error,
       filepath: content.filepath,
+      kernelRef,
       lastSavedStatement: "recently",
       loading: content.loading,
       mimetype: content.mimetype,
@@ -171,12 +176,9 @@ const makeMapStateToProps = (
   return mapStateToProps;
 };
 
-const mapDispatchToProps = (
-  dispatch: Dispatch,
-  initialProps: { contentRef: ContentRef }
-) => {
-  const store = window.store;
-  const kernelRef = store.getState().core.kernelRef;
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: IContentsProps) => {
+  console.log("ownProps... ", ownProps);
+  const { contentRef, kernelRef } = ownProps;
 
   return {
     // `HotKeys` handlers object
@@ -184,58 +186,36 @@ const mapDispatchToProps = (
     handlers: {
       CHANGE_CELL_TYPE: (event: KeyboardEvent) => {
         const type: CellType = event.key === "Y" ? "code" : "markdown";
-
-        return dispatch(
-          actions.changeCellType({
-            to: type,
-            contentRef: initialProps.contentRef
-          })
-        );
+        return dispatch(actions.changeCellType({ to: type, contentRef }));
       },
-      COPY_CELL: () =>
-        dispatch(actions.copyCell({ contentRef: initialProps.contentRef })),
+      COPY_CELL: () => dispatch(actions.copyCell({ contentRef })),
       CREATE_CELL_ABOVE: () =>
-        dispatch(
-          actions.createCellAbove({
-            cellType: "code",
-            contentRef: initialProps.contentRef
-          })
-        ),
+        dispatch(actions.createCellAbove({ cellType: "code", contentRef })),
       CREATE_CELL_BELOW: () =>
         dispatch(
-          actions.createCellBelow({
-            cellType: "code",
-            source: "",
-            contentRef: initialProps.contentRef
-          })
+          actions.createCellBelow({ cellType: "code", source: "", contentRef })
         ),
-      CUT_CELL: () =>
-        dispatch(actions.cutCell({ contentRef: initialProps.contentRef })),
-      DELETE_CELL: () =>
-        dispatch(actions.deleteCell({ contentRef: initialProps.contentRef })),
+      CUT_CELL: () => dispatch(actions.cutCell({ contentRef })),
+      DELETE_CELL: () => dispatch(actions.deleteCell({ contentRef })),
       EXECUTE_ALL_CELLS: () =>
-        dispatch(
-          actions.executeAllCells({ contentRef: initialProps.contentRef })
-        ),
+        dispatch(actions.executeAllCells({ contentRef })),
       INTERRUPT_KERNEL: () => {
-        dispatch(actions.interruptKernel({ kernelRef }));
+        if (kernelRef) {
+          dispatch(actions.interruptKernel({ kernelRef }));
+        }
       },
       KILL_KERNEL: () => {
-        const store: any = window.store;
-        const kernelRef: KernelRef = store.getState().core.kernelRef;
-
-        dispatch(
-          actions.killKernel({
-            kernelRef,
-            restarting: false
-          })
-        );
+        if (kernelRef) {
+          dispatch(
+            actions.killKernel({
+              kernelRef,
+              restarting: false
+            })
+          );
+        }
       },
-      PASTE_CELL: () =>
-        dispatch(actions.pasteCell({ contentRef: initialProps.contentRef })),
+      PASTE_CELL: () => dispatch(actions.pasteCell({ contentRef })),
       RESTART_KERNEL: (event: KeyboardEvent) => {
-        const store = window.store;
-        const kernelRef: KernelRef | null = store.getState().core.kernelRef;
         const outputHandling: "None" | "Clear All" | "Run All" =
           event.key === "r"
             ? "None"
@@ -243,16 +223,13 @@ const mapDispatchToProps = (
             ? "Run All"
             : "Clear All";
 
-        return dispatch(
-          actions.restartKernel({
-            outputHandling,
-            contentRef: initialProps.contentRef,
-            kernelRef
-          })
-        );
+        if (kernelRef) {
+          return dispatch(
+            actions.restartKernel({ outputHandling, contentRef, kernelRef })
+          );
+        }
       },
-      SAVE: () =>
-        dispatch(actions.save({ contentRef: initialProps.contentRef }))
+      SAVE: () => dispatch(actions.save({ contentRef }))
     }
   };
 };

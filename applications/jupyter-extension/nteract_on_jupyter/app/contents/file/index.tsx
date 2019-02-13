@@ -41,15 +41,16 @@ export class File extends React.PureComponent<FileProps> {
 
     // notebooks don't report a mimetype so we'll use the content.type
     if (this.props.type === "notebook") {
-      choice = <Notebook contentRef={this.props.contentRef} />;
+      const { contentRef } = this.props;
+      choice = <Notebook contentRef={contentRef} />;
     } else if (this.props.type === "dummy") {
       choice = null;
     } else if (
       this.props.mimetype == null ||
       !TextFile.handles(this.props.mimetype)
     ) {
-      // TODO: Redirect to /files/ endpoint for them to download the file or view
-      //       as is
+      // TODO: Redirect to /files/ endpoint for them to download
+      // the file or view as is
       choice = (
         <PaddedContainer>
           <pre>Can not render this file type</pre>
@@ -62,7 +63,7 @@ export class File extends React.PureComponent<FileProps> {
     return choice;
   };
 
-  render() {
+  render(): JSX.Element {
     const choice = this.getChoice();
 
     // Right now we only handle one kind of editor

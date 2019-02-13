@@ -1,18 +1,10 @@
 import { CellType } from "@nteract/commutable";
 import { actions, AppState, ContentRef, selectors } from "@nteract/core";
-import {
-  DirectoryContentRecordProps,
-  DummyContentRecordProps,
-  FileContentRecordProps,
-  KernelRef,
-  NotebookContentRecordProps
-} from "@nteract/types";
-import { RecordOf } from "immutable";
+import { createKernelRef, KernelRef } from "@nteract/types";
 import * as React from "react";
 import { HotKeys, KeyMap } from "react-hotkeys";
 import { connect } from "react-redux";
 import { Dispatch } from "redux";
-import urljoin from "url-join";
 
 // Show nothing while loading the notebook app
 const NotebookPlaceholder = (props: any) => null;
@@ -23,12 +15,11 @@ interface State {
 
 interface Props {
   contentRef: ContentRef;
-  kernelRef?: KernelRef;
-  addTransform(component: any): void;
+  addTransform?(component: any): void;
 }
 
 interface IDispatchFromProps {
-  handlers: any;
+  handlers?: any;
 }
 
 interface InitialProps {
@@ -124,36 +115,11 @@ class Notebook extends React.PureComponent<NotebookProps, State> {
   }
 }
 
-const makeMapStateToProps = (
-  initialState: AppState,
-  initialProps: NotebookProps
-) => {
-  const contentRef: ContentRef = initialProps.contentRef;
-
-  const mapStateToProps = (state: AppState) => {
-    if (!contentRef) {
-      throw new Error("cant display without a contentRef");
-    }
-
-    const content: any = selectors.content(state, { contentRef });
-
-    if (!content) {
-      throw new Error("need content to view content, check your contentRefs");
-    }
-
-    const kernelRef: KernelRef = content.model.kernelRef;
-
-    return {
-      contentRef,
-      kernelRef
-    };
-  };
-
-  return mapStateToProps;
-};
-
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
-  const { contentRef, kernelRef } = ownProps;
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: NotebookProps) => {
+  const { contentRef } = ownProps;
+  // Creates a fake kernelRef for kernel actions that allow
+  // for interrupt, restart, and kill behaviors.
+  const kernelRef = createKernelRef();
 
   return {
     addTransform: (transform: React.ComponentType & { MIMETYPE: string }) => {
@@ -214,6 +180,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
 };
 
 export default connect(
-  makeMapStateToProps,
+  null,
   mapDispatchToProps
 )(Notebook);

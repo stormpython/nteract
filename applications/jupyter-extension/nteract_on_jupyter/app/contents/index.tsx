@@ -34,14 +34,7 @@ interface IContentsProps {
 interface IContentsState {
   isDialogOpen: boolean;
 }
-interface IDispatchFromProps {
-  handlers: any;
-}
-
-class Contents extends React.PureComponent<
-  IContentsProps & IDispatchFromProps,
-  IContentsState
-> {
+class Contents extends React.PureComponent<IContentsProps, IContentsState> {
   render(): JSX.Element {
     const {
       appBase,
@@ -50,7 +43,6 @@ class Contents extends React.PureComponent<
       contentType,
       displayName,
       error,
-      handlers,
       loading,
       saving
     } = this.props;

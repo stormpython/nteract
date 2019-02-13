@@ -1,5 +1,13 @@
 import { CellType } from "@nteract/commutable";
-import { actions, ContentRef } from "@nteract/core";
+import { actions, AppState, ContentRef, selectors } from "@nteract/core";
+import {
+  DirectoryContentRecordProps,
+  DummyContentRecordProps,
+  FileContentRecordProps,
+  KernelRef,
+  NotebookContentRecordProps
+} from "@nteract/types";
+import { RecordOf } from "immutable";
 import * as React from "react";
 import { HotKeys, KeyMap } from "react-hotkeys";
 import { connect } from "react-redux";
@@ -15,10 +23,21 @@ interface State {
 
 interface Props {
   contentRef: ContentRef;
+  kernelRef?: KernelRef;
   addTransform(component: any): void;
 }
 
-class Notebook extends React.PureComponent<Props, State> {
+interface IDispatchFromProps {
+  handlers: any;
+}
+
+interface InitialProps {
+  contentRef: ContentRef;
+}
+
+type NotebookProps = Props & IDispatchFromProps;
+
+class Notebook extends React.PureComponent<NotebookProps, State> {
   private keyMap: KeyMap = {
     CHANGE_CELL_TYPE: [
       "ctrl+shift+y",
@@ -39,7 +58,7 @@ class Notebook extends React.PureComponent<Props, State> {
     SAVE: ["ctrl+s", "ctrl+shift+s", "meta+s", "meta+shift+s"]
   };
 
-  constructor(props: Props) {
+  constructor(props: NotebookProps) {
     super(props);
     this.state = {
       App: NotebookPlaceholder
@@ -96,19 +115,46 @@ class Notebook extends React.PureComponent<Props, State> {
     const App = this.state.App;
 
     return (
-      <HotKeys keyMap={this.keyMap} handlers={handlers}>
-        <App contentRef={this.props.contentRef} />
-      </HotKeys>
+      <React.Fragment>
+        <HotKeys keyMap={this.keyMap} handlers={this.props.handlers}>
+          <App contentRef={this.props.contentRef} />
+        </HotKeys>
+      </React.Fragment>
     );
   }
 }
 
-interface InitialProps {
-  contentRef: ContentRef;
-}
+const makeMapStateToProps = (
+  initialState: AppState,
+  initialProps: NotebookProps
+) => {
+  const contentRef: ContentRef = initialProps.contentRef;
 
-const makeMapDispatchToProps = (dispatch: Dispatch, ownProps: InitialProps) => {
-  const { contentRef } = ownProps;
+  const mapStateToProps = (state: AppState) => {
+    if (!contentRef) {
+      throw new Error("cant display without a contentRef");
+    }
+
+    const content: any = selectors.content(state, { contentRef });
+
+    if (!content) {
+      throw new Error("need content to view content, check your contentRefs");
+    }
+
+    const kernelRef: KernelRef = content.model.kernelRef;
+
+    return {
+      contentRef,
+      kernelRef
+    };
+  };
+
+  return mapStateToProps;
+};
+
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => {
+  const { contentRef, kernelRef } = ownProps;
+
   return {
     addTransform: (transform: React.ComponentType & { MIMETYPE: string }) => {
       return dispatch(
@@ -140,20 +186,14 @@ const makeMapDispatchToProps = (dispatch: Dispatch, ownProps: InitialProps) => {
       DELETE_CELL: () => dispatch(actions.deleteCell({ contentRef })),
       EXECUTE_ALL_CELLS: () =>
         dispatch(actions.executeAllCells({ contentRef })),
-      INTERRUPT_KERNEL: () => {
-        if (kernelRef) {
-          dispatch(actions.interruptKernel({ kernelRef }));
-        }
-      },
+      INTERRUPT_KERNEL: () => dispatch(actions.interruptKernel({ kernelRef })),
       KILL_KERNEL: () => {
-        if (kernelRef) {
-          dispatch(
-            actions.killKernel({
-              kernelRef,
-              restarting: false
-            })
-          );
-        }
+        dispatch(
+          actions.killKernel({
+            kernelRef,
+            restarting: false
+          })
+        );
       },
       PASTE_CELL: () => dispatch(actions.pasteCell({ contentRef })),
       RESTART_KERNEL: (event: KeyboardEvent) => {
@@ -164,11 +204,9 @@ const makeMapDispatchToProps = (dispatch: Dispatch, ownProps: InitialProps) => {
             ? "Run All"
             : "Clear All";
 
-        if (kernelRef) {
-          return dispatch(
-            actions.restartKernel({ outputHandling, contentRef, kernelRef })
-          );
-        }
+        return dispatch(
+          actions.restartKernel({ outputHandling, contentRef, kernelRef })
+        );
       },
       SAVE: () => dispatch(actions.save({ contentRef }))
     }
@@ -176,6 +214,6 @@ const makeMapDispatchToProps = (dispatch: Dispatch, ownProps: InitialProps) => {
 };
 
 export default connect(
-  null,
-  makeMapDispatchToProps
+  makeMapStateToProps,
+  mapDispatchToProps
 )(Notebook);

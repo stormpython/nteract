@@ -41,8 +41,7 @@ export class File extends React.PureComponent<FileProps> {
 
     // notebooks don't report a mimetype so we'll use the content.type
     if (this.props.type === "notebook") {
-      const { contentRef } = this.props;
-      choice = <Notebook contentRef={contentRef} />;
+      choice = <Notebook contentRef={this.props.contentRef} />;
     } else if (this.props.type === "dummy") {
       choice = null;
     } else if (

@@ -91,10 +91,6 @@ class Notebook extends React.PureComponent<NotebookProps, State> {
       this.props.addTransform(module.Vega2);
       this.props.addTransform(module.Vega3);
     });
-
-    // TODO: The geojson transform will likely need some work
-    // because of the basemap URL(s)
-    // import GeoJSONTransform from "@nteract/transform-geojson";
   }
 
   componentDidMount(): void {

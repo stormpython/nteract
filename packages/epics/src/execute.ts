@@ -1,6 +1,10 @@
 /**
  * @module epics
  */
+
+// Vendor modules
+import * as actions from "@nteract/actions";
+import { CellId, OnDiskOutput } from "@nteract/commutable";
 import {
   Channels,
   childOf,
@@ -14,6 +18,9 @@ import {
   outputs,
   payloads
 } from "@nteract/messaging";
+import * as selectors from "@nteract/selectors";
+import { AppState, ContentRef, PayloadMessage } from "@nteract/types";
+import * as Immutable from "immutable";
 import { ofType } from "redux-observable";
 import { ActionsObservable, StateObservable } from "redux-observable";
 import { empty, merge, Observable, Observer, of, throwError } from "rxjs";
@@ -32,12 +39,7 @@ import {
   tap
 } from "rxjs/operators";
 
-import * as actions from "@nteract/actions";
-import { CellId, OnDiskOutput } from "@nteract/commutable";
-import * as selectors from "@nteract/selectors";
-import { AppState, ContentRef, PayloadMessage } from "@nteract/types";
-
-const Immutable = require("immutable");
+// const Immutable = require("immutable");
 
 /**
  * Observe all the reactions to running code for cell with id.
@@ -54,7 +56,7 @@ export function executeCellStream(
   id: string,
   message: ExecuteRequest,
   contentRef: ContentRef
-) {
+): Observable<any> {
   if (!channels || !channels.pipe) {
     return throwError(new Error("kernel not connected"));
   }
@@ -194,7 +196,7 @@ export function executeAllCellsEpic(
     actions.ExecuteAllCells | actions.ExecuteAllCellsBelow
   >,
   state$: StateObservable<AppState>
-) {
+): Observable<any> {
   return action$.pipe(
     ofType(actions.EXECUTE_ALL_CELLS, actions.EXECUTE_ALL_CELLS_BELOW),
     concatMap(
@@ -232,7 +234,7 @@ export function executeAllCellsEpic(
 export function executeCellEpic(
   action$: ActionsObservable<actions.ExecuteCell | actions.ExecuteFocusedCell>,
   state$: any
-) {
+): Observable<any> {
   return action$.pipe(
     ofType(actions.EXECUTE_CELL, actions.EXECUTE_FOCUSED_CELL),
     mergeMap((action: actions.ExecuteCell | actions.ExecuteFocusedCell) => {
@@ -337,7 +339,7 @@ export function executeCellEpic(
 
 export const updateDisplayEpic = (
   action$: ActionsObservable<actions.NewKernelAction>
-) =>
+): Observable<any> =>
   // Global message watcher so we need to set up a feed for each new kernel
   action$.pipe(
     ofType(actions.LAUNCH_KERNEL_SUCCESSFUL),

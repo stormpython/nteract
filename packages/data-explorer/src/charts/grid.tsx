@@ -201,7 +201,11 @@ class DataResourceTransformGrid extends React.PureComponent<Props, State> {
             (newFilter: { [key: string]: Function }) => {
               this.setState({ filters: { ...filters, ...newFilter } });
             }
-          )
+          ),
+          style: {
+            // Auto fit table cell to content size
+            "white-space": "pre-wrap"
+          }
         };
       } else {
         return {

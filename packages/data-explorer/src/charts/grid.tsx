@@ -1,12 +1,29 @@
+// Vendor modules
 import * as React from "react";
 import ReactTable from "react-table";
 import withFixedColumns from "react-table-hoc-fixed-columns";
-
-import * as Dx from "../types";
-
 import styled from "styled-components";
 
+// Local modules
+import * as Dx from "../types";
+
 const ReactTableFixedColumns = withFixedColumns(ReactTable);
+
+// Styled Components
+const GridWrapper = styled.div`
+  width: 100%;
+`;
+const Form = styled.form`
+  border: "1px solid gray";
+  background: "white";
+  border-radius: "5px";
+  width: "100%";
+`;
+
+const Input = styled.input`
+  width: "calc(100% - 30px)";
+  border: "none";
+`;
 
 const switchMode = (currentMode: string) => {
   const nextMode: Dx.JSONObject = {
@@ -17,6 +34,7 @@ const switchMode = (currentMode: string) => {
   return nextMode[currentMode];
 };
 
+// Types
 type OnChangeProps = (input: number | string) => void;
 
 type FilterIndexSignature = "integer" | "number" | "string";
@@ -28,41 +46,27 @@ interface NumberFilterProps {
   updateFunction: (input: Dx.JSONObject) => void;
 }
 
-const GridWrapper = styled.div`
-  width: 100%;
-`;
-
 const NumberFilter = (props: NumberFilterProps) => {
   const { filterState, filterName, updateFunction, onChange } = props;
   const mode = filterState[filterName] || "=";
+  const handleChange = (event: React.FormEvent<HTMLInputElement>) => {
+    onChange(event.currentTarget.value);
+  };
+  const handleClick = () => {
+    updateFunction({ [filterName]: switchMode(mode) });
+  };
 
   return (
-    <form
-      style={{
-        border: "1px solid gray",
-        background: "white",
-        borderRadius: "5px",
-        width: "100%"
-      }}
-    >
-      <input
+    <Form>
+      <Input
         type="text"
         id="name"
         name="user_name"
-        style={{ width: "calc(100% - 30px)", border: "none" }}
-        onChange={(event: React.FormEvent<HTMLInputElement>) => {
-          onChange(event.currentTarget.value);
-        }}
+        onChange={handleChange}
         placeholder="number"
       />
-      <button
-        onClick={() => {
-          updateFunction({ [filterName]: switchMode(mode) });
-        }}
-      >
-        {mode}
-      </button>
-    </form>
+      <button onClick={handleClick}>{mode}</button>
+    </Form>
   );
 };
 
@@ -152,7 +156,7 @@ interface Props {
 }
 
 class DataResourceTransformGrid extends React.PureComponent<Props, State> {
-  static defaultProps = {
+  static defaultProps: Partial<Props> & { metadata: object } = {
     metadata: {},
     height: 500
   };
@@ -165,16 +169,18 @@ class DataResourceTransformGrid extends React.PureComponent<Props, State> {
     };
   }
 
-  render() {
+  onClick = (): void => {
+    const { showFilters } = this.state;
+    this.setState({ showFilters: !showFilters });
+  };
+
+  render(): JSX.Element {
     const {
       data: { data, schema },
       height
     } = this.props;
-
     const { filters, showFilters } = this.state;
-
     const { primaryKey = [] } = schema;
-
     const tableColumns = schema.fields.map((field: Dx.Field) => {
       if (
         field.type === "string" ||
@@ -183,6 +189,9 @@ class DataResourceTransformGrid extends React.PureComponent<Props, State> {
       ) {
         return {
           Header: field.name,
+          Cell: (row: object & { value: any }) => (
+            <div style={}>{row && row.value}</div>
+          ),
           accessor: field.name,
           fixed: primaryKey.indexOf(field.name) !== -1 && "left",
           filterMethod: (filter: Dx.JSONObject, row: Dx.JSONObject) => {
@@ -194,7 +203,8 @@ class DataResourceTransformGrid extends React.PureComponent<Props, State> {
               return filterMethod[field.type](filters[field.name])(filter, row);
             }
           },
-          // If we don't have a filter defined for this field type, pass an empty div
+          // If we don't have a filter defined for this field type,
+          // pass an empty div
           Filter: columnFilters[field.type](
             filters,
             field.name,
@@ -204,7 +214,8 @@ class DataResourceTransformGrid extends React.PureComponent<Props, State> {
           ),
           style: {
             // Auto fit table cell to content size
-            "white-space": "pre-wrap"
+            "white-space": "pre-wrap",
+            width: "auto"
           }
         };
       } else {
@@ -215,21 +226,20 @@ class DataResourceTransformGrid extends React.PureComponent<Props, State> {
         };
       }
     });
+    const ReactTableStyle = { height: `${height}px` };
 
     return (
       <GridWrapper>
         <button
           //          icon="filter"
-          onClick={() => this.setState({ showFilters: !showFilters })}
+          onClick={this.onClick}
         >
           {showFilters ? "Hide" : "Show"} Filters
         </button>
         <ReactTableFixedColumns
           data={data}
           columns={tableColumns}
-          style={{
-            height: `${height}px`
-          }}
+          style={ReactTableStyle}
           className="-striped -highlight"
           filterable={showFilters}
         />

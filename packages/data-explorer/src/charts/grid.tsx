@@ -1,3 +1,7 @@
+/**
+ * Description of component.
+ */
+
 // Vendor modules
 import * as React from "react";
 import ReactTable from "react-table";
@@ -7,6 +11,7 @@ import styled from "styled-components";
 // Local modules
 import * as Dx from "../types";
 
+// Create React Table with fixed columns
 const ReactTableFixedColumns = withFixedColumns(ReactTable);
 
 // Styled Components
@@ -25,6 +30,44 @@ const Input = styled.input`
   border: "none";
 `;
 
+// Types
+type OnChangeProps = (input: number | string) => void;
+
+type FilterIndexSignature = "integer" | "number" | "string";
+
+type FilterMethodType = { [index in FilterIndexSignature]: Function };
+
+interface NumberFilterProps {
+  onChange: OnChangeProps;
+  filterState: { [key: string]: string };
+  filterName: string;
+  updateFunction: (input: Dx.JSONObject) => void;
+}
+
+interface FilterObject {
+  id: string;
+  value: string;
+}
+
+interface StringRowObject {
+  [key: string]: string;
+}
+
+interface NumberRowObject {
+  [key: string]: number;
+}
+
+interface State {
+  filters: { [key: string]: Function };
+  showFilters: boolean;
+}
+
+interface Props {
+  data: { data: Dx.Datapoint[]; schema: Dx.Schema };
+  height: number;
+}
+
+// Helper functions
 const switchMode = (currentMode: string) => {
   const nextMode: Dx.JSONObject = {
     "=": ">",
@@ -33,18 +76,6 @@ const switchMode = (currentMode: string) => {
   };
   return nextMode[currentMode];
 };
-
-// Types
-type OnChangeProps = (input: number | string) => void;
-
-type FilterIndexSignature = "integer" | "number" | "string";
-
-interface NumberFilterProps {
-  onChange: OnChangeProps;
-  filterState: { [key: string]: string };
-  filterName: string;
-  updateFunction: (input: Dx.JSONObject) => void;
-}
 
 const NumberFilter = (props: NumberFilterProps) => {
   const { filterState, filterName, updateFunction, onChange } = props;
@@ -97,28 +128,40 @@ const numberFilterWrapper = (
   />
 );
 
-const filterNumbers = (mode = "=") => (
+/**
+ *
+ */
+function filterNumbers(
+  mode: string = "="
+): (filter: FilterObject, row: NumberRowObject) => boolean | number {
+  return (filter: FilterObject, row: NumberRowObject): boolean | number => {
+    const filterValue = Number(filter.value);
+
+    if (mode === "=") {
+      return row[filter.id] === filterValue;
+    } else if (mode === "<") {
+      return row[filter.id] < filterValue;
+    } else if (mode === ">") {
+      return row[filter.id] > filterValue;
+    }
+
+    return row[filter.id];
+  };
+}
+
+/**
+ *
+ */
+function filterStrings(): (
   filter: FilterObject,
-  row: NumberRowObject
-) => {
-  const filterValue = Number(filter.value);
-  if (mode === "=") {
-    return row[filter.id] === filterValue;
-  } else if (mode === "<") {
-    return row[filter.id] < filterValue;
-  } else if (mode === ">") {
-    return row[filter.id] > filterValue;
-  }
-  return row[filter.id];
-};
-
-const filterStrings = () => (filter: FilterObject, row: StringRowObject) => {
-  return (
-    row[filter.id].toLowerCase().indexOf(filter.value.toLowerCase()) !== -1
-  );
-};
-
-type FilterMethodType = { [index in FilterIndexSignature]: Function };
+  row: StringRowObject
+) => boolean {
+  return (filter: FilterObject, row: StringRowObject): boolean => {
+    return (
+      row[filter.id].toLowerCase().indexOf(filter.value.toLowerCase()) !== -1
+    );
+  };
+}
 
 const columnFilters: FilterMethodType = {
   integer: numberFilterWrapper,
@@ -131,29 +174,6 @@ const filterMethod: FilterMethodType = {
   number: filterNumbers,
   string: filterStrings
 };
-
-interface FilterObject {
-  id: string;
-  value: string;
-}
-
-interface StringRowObject {
-  [key: string]: string;
-}
-
-interface NumberRowObject {
-  [key: string]: number;
-}
-
-interface State {
-  filters: { [key: string]: Function };
-  showFilters: boolean;
-}
-
-interface Props {
-  data: { data: Dx.Datapoint[]; schema: Dx.Schema };
-  height: number;
-}
 
 class DataResourceTransformGrid extends React.PureComponent<Props, State> {
   static defaultProps: Partial<Props> & { metadata: object } = {

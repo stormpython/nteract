@@ -1,4 +1,4 @@
-import { AppState, ContentRef, selectors } from "@nteract/core";
+import { AppState, ContentRef, KernelRef, selectors } from "@nteract/core";
 import { dirname } from "path";
 import * as React from "react";
 import { connect } from "react-redux";
@@ -32,6 +32,7 @@ interface FileProps {
   appBase: string;
   displayName?: string;
   mimetype?: string | null;
+  kernelRef: KernelRef | null;
   lastSavedStatement: string;
 }
 
@@ -41,7 +42,12 @@ export class File extends React.PureComponent<FileProps> {
 
     // notebooks don't report a mimetype so we'll use the content.type
     if (this.props.type === "notebook") {
-      choice = <Notebook contentRef={this.props.contentRef} />;
+      choice = (
+        <Notebook
+          contentRef={this.props.contentRef}
+          kernelRef={this.props.kernelRef}
+        />
+      );
     } else if (this.props.type === "dummy") {
       choice = null;
     } else if (

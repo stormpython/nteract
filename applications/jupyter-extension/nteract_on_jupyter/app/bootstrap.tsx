@@ -147,7 +147,7 @@ export async function main(config: JupyterConfigData, rootEl): Promise<void> {
   ReactDOM.render(
     <React.Fragment>
       <Provider store={store}>
-        <App contentRef={contentRef} />
+        <App contentRef={contentRef} kernelRef={kernelRef} />
       </Provider>
     </React.Fragment>,
     rootEl

@@ -1,4 +1,4 @@
-import { ContentRef } from "@nteract/core";
+import { ContentRef, KernelRef } from "@nteract/core";
 import * as React from "react";
 import NotificationSystem, {
   System as ReactNotificationSystem
@@ -6,17 +6,28 @@ import NotificationSystem, {
 
 import { default as Contents } from "./contents";
 
-class App extends React.Component<{ contentRef: ContentRef }> {
+class App extends React.Component<{
+  contentRef: ContentRef;
+  kernelRef: KernelRef;
+}> {
   notificationSystem!: ReactNotificationSystem;
 
-  shouldComponentUpdate(nextProps: { contentRef: ContentRef }): boolean {
-    return nextProps.contentRef !== this.props.contentRef;
+  shouldComponentUpdate(nextProps: {
+    contentRef: ContentRef;
+    kernelRef: KernelRef;
+  }): boolean {
+    return (
+      nextProps.contentRef !== this.props.contentRef ||
+      nextProps.kernelRef !== this.props.kernelRef
+    );
   }
 
   render(): JSX.Element {
+    const { contentRef, kernelRef } = this.props;
+
     return (
       <React.Fragment>
-        <Contents contentRef={this.props.contentRef} />
+        <Contents contentRef={contentRef} kernelRef={kernelRef} />
         <NotificationSystem
           ref={(notificationSystem: ReactNotificationSystem) => {
             this.notificationSystem = notificationSystem;

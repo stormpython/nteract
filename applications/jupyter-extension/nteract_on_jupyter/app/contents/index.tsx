@@ -3,6 +3,7 @@ import {
   DirectoryContentRecordProps,
   DummyContentRecordProps,
   FileContentRecordProps,
+  KernelRef,
   NotebookContentRecordProps
 } from "@nteract/types";
 import { RecordOf } from "immutable";
@@ -25,6 +26,7 @@ interface IContentsProps {
   displayName: string;
   error?: object | null;
   filepath: string | undefined;
+  kernelRef: KernelRef;
   lastSavedStatement: string;
   loading: boolean;
   mimetype?: string | null;
@@ -43,6 +45,7 @@ class Contents extends React.PureComponent<IContentsProps, IContentsState> {
       contentType,
       displayName,
       error,
+      kernelRef,
       loading,
       saving
     } = this.props;
@@ -66,7 +69,11 @@ class Contents extends React.PureComponent<IContentsProps, IContentsState> {
                 <NotebookMenu contentRef={this.props.contentRef} />
               ) : null}
             </FileHeader>
-            <File contentRef={contentRef} appBase={appBase} />
+            <File
+              contentRef={contentRef}
+              kernelRef={kernelRef}
+              appBase={appBase}
+            />
           </React.Fragment>
         );
       case "directory":

@@ -1,6 +1,5 @@
 import { CellType } from "@nteract/commutable";
-import { actions, AppState, ContentRef, selectors } from "@nteract/core";
-import { createKernelRef, KernelRef } from "@nteract/types";
+import { actions, ContentRef, KernelRef } from "@nteract/core";
 import * as React from "react";
 import { HotKeys, KeyMap } from "react-hotkeys";
 import { connect } from "react-redux";
@@ -15,6 +14,7 @@ interface State {
 
 interface Props {
   contentRef: ContentRef;
+  kernelRef: KernelRef;
   addTransform?(component: any): void;
 }
 
@@ -112,10 +112,9 @@ class Notebook extends React.PureComponent<NotebookProps, State> {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: NotebookProps) => {
-  const { contentRef } = ownProps;
-  // Creates a fake kernelRef for kernel actions that allow
-  // for interrupt, restart, and kill behaviors.
-  const kernelRef = createKernelRef();
+  const { contentRef, kernelRef } = ownProps;
+
+  console.log(kernelRef);
 
   return {
     addTransform: (transform: React.ComponentType & { MIMETYPE: string }) => {

@@ -42,7 +42,6 @@ interface Props {
   persistAfterClick?: boolean;
   defaultOpenKeys?: string[];
   openKeys?: string[];
-  kernelRef: KernelRef | null;
   currentKernelRef?: KernelRef | null;
   saveNotebook?: (payload: { contentRef: string }) => void;
   downloadNotebook?: (payload: { contentRef: string }) => void;
@@ -128,8 +127,7 @@ class PureNotebookMenu extends React.PureComponent<Props, State> {
       restartKernelAndRunAllOutputs,
       killKernel,
       interruptKernel,
-      currentContentRef,
-      kernelRef
+      currentContentRef
     } = this.props;
     const [action, ...args] = parseActionKey(key);
     switch (action) {
@@ -233,14 +231,14 @@ class PureNotebookMenu extends React.PureComponent<Props, State> {
         break;
       case MENU_ITEM_ACTIONS.INTERRUPT_KERNEL:
         if (interruptKernel) {
-          interruptKernel({ kernelRef });
+          interruptKernel({ kernelRef: currentKernelRef });
         }
         break;
       case MENU_ITEM_ACTIONS.RESTART_KERNEL:
         if (restartKernel) {
           restartKernel({
             outputHandling: "None",
-            kernelRef,
+            kernelRef: currentKernelRef,
             contentRef: currentContentRef
           });
         }
@@ -248,7 +246,7 @@ class PureNotebookMenu extends React.PureComponent<Props, State> {
       case MENU_ITEM_ACTIONS.RESTART_AND_CLEAR_OUTPUTS:
         if (restartKernelAndClearOutputs) {
           restartKernelAndClearOutputs({
-            kernelRef,
+            kernelRef: currentKernelRef,
             contentRef: currentContentRef
           });
         }
@@ -256,20 +254,20 @@ class PureNotebookMenu extends React.PureComponent<Props, State> {
       case MENU_ITEM_ACTIONS.RESTART_AND_RUN_ALL_OUTPUTS:
         if (restartKernelAndRunAllOutputs) {
           restartKernelAndRunAllOutputs({
-            kernelRef,
+            kernelRef: currentKernelRef,
             contentRef: currentContentRef
           });
         }
         break;
       case MENU_ITEM_ACTIONS.KILL_KERNEL:
         if (killKernel) {
-          killKernel({ restarting: false, kernelRef });
+          killKernel({ restarting: false, kernelRef: currentKernelRef });
         }
         break;
       case MENU_ITEM_ACTIONS.CHANGE_KERNEL:
         if (changeKernelByName) {
           changeKernelByName({
-            oldKernelRef: kernelRef,
+            oldKernelRef: currentKernelRef,
             contentRef: currentContentRef,
             kernelSpecName: args[0]
           });

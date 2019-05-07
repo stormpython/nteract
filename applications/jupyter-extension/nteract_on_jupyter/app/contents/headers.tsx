@@ -51,7 +51,7 @@ export interface State {
 }
 
 class FileHeader extends React.PureComponent<FileHeaderProps, State> {
-  static defaultProps: { children: any } = {
+  static defaultProps: { children: React.ReactNode } = {
     children: null
   };
 
